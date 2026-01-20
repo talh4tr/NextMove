@@ -4,18 +4,12 @@ import { AnalysisResult, MessageSuggestion } from '../types/analysis';
 
 type AnalyzePayload = {
   character: CharacterOption;
-import { AnalysisResult, MessageSuggestion } from '../types/analysis';
-
-type AnalyzePayload = {
-  character: string;
   conversation: string;
 };
 
 type SuggestPayload = {
   character: CharacterOption;
   tone: ToneOption;
-  character: string;
-  tone: MessageSuggestion['tone'];
   conversation: string;
 };
 
