@@ -12,14 +12,8 @@ import PrimaryButton from '../components/PrimaryButton';
 import ScreenContainer from '../components/ScreenContainer';
 import { DEFAULT_STYLE } from '../constants/app';
 import { useStyle } from '../context/StyleContext';
-import { generateReply } from '../services/aiClient';
+import { ApiError, generateReply } from '../services/aiClient';
 import { logEvent } from '../services/analytics';
-import {
-  BadResponseError,
-  NetworkOfflineError,
-  RateLimitError,
-  TimeoutError
-} from '../services/errors';
 import { ReplyResult } from '../types/reply';
 import { loadRecentReplies, saveRecentReplies } from '../utils/storage';
 
@@ -37,8 +31,6 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onRep
   const [recentReplies, setRecentReplies] = useState<ReplyResult[]>([]);
   const [retryUntil, setRetryUntil] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
-  const quickExamples = ['kanka nasilsin', 'napıyosun', 'bugun cok iyisin', 'dun seen attin ya'];
-  const goalExamples = ['Buluşmaya çekmek'];
 
   useEffect(() => {
     loadRecentReplies()
@@ -79,7 +71,7 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onRep
 
     try {
       const result = await generateReply({
-        incomingMessage: trimmedMessage,
+        message: trimmedMessage,
         goal: trimmedGoal || undefined,
         style: style || DEFAULT_STYLE
       });
@@ -100,24 +92,16 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onRep
       onReplyReady(newResult);
     } catch (err) {
       const fallbackMessage = 'Cevap üretilemedi. Lütfen tekrar dene.';
-      if (err instanceof RateLimitError) {
-        setRetryUntil(Date.now() + (err.retryAfterMs ?? 30000));
-        setError(err.message);
-        return;
+      if (err instanceof ApiError) {
+        if (err.kind === 'rate_limit') {
+          setRetryUntil(Date.now() + (err.retryAfterMs ?? 30000));
+          setError(err.message);
+        } else {
+          setError(err.message || fallbackMessage);
+        }
+      } else {
+        setError(fallbackMessage);
       }
-      if (err instanceof TimeoutError) {
-        setError('İstek zaman aşımına uğradı. Tekrar dene.');
-        return;
-      }
-      if (err instanceof NetworkOfflineError) {
-        setError('Bağlantı yok. İnterneti kontrol et.');
-        return;
-      }
-      if (err instanceof BadResponseError) {
-        setError(err.message || fallbackMessage);
-        return;
-      }
-      setError(fallbackMessage);
     } finally {
       setLoading(false);
     }
@@ -128,20 +112,6 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onRep
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Tek ekran, tek iş</Text>
         <Text style={styles.subtitle}>Karşıdan gelen mesajı yapıştır, hemen cevap al.</Text>
-        <View style={styles.chipRow}>
-          {quickExamples.map((example) => (
-            <Pressable
-              key={example}
-              style={styles.chip}
-              onPress={() => {
-                setMessage(example);
-                setError(null);
-              }}
-            >
-              <Text style={styles.chipText}>{example}</Text>
-            </Pressable>
-          ))}
-        </View>
         <Text style={styles.label}>Karşıdan gelen mesaj</Text>
         <TextInput
           style={[styles.input, showValidation ? styles.inputError : null]}
@@ -163,17 +133,6 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onRep
           </Text>
         ) : null}
         <Text style={styles.label}>Ben ne istiyorum? (opsiyonel)</Text>
-        <View style={styles.goalChipRow}>
-          {goalExamples.map((example) => (
-            <Pressable
-              key={example}
-              style={styles.goalChip}
-              onPress={() => setGoal(example)}
-            >
-              <Text style={styles.goalChipText}>{example}</Text>
-            </Pressable>
-          ))}
-        </View>
         <TextInput
           style={styles.goalInput}
           placeholder="Amaç: buluşma, numara, flört"
@@ -239,44 +198,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 24
-  },
-  chipRow: {
-    marginTop: 14,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8
-  },
-  chip: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#2D2D2D',
-    backgroundColor: '#141414'
-  },
-  chipText: {
-    color: '#E0E0E0',
-    fontSize: 12,
-    fontWeight: '600'
-  },
-  goalChipRow: {
-    marginTop: 10,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8
-  },
-  goalChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#2D2D2D',
-    backgroundColor: '#111111'
-  },
-  goalChipText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600'
   },
   label: {
     marginTop: 18,

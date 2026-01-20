@@ -1,19 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import * as Haptics from 'expo-haptics';
 import ScreenContainer from '../components/ScreenContainer';
 import ToneButton from '../components/ToneButton';
 import { DEFAULT_STYLE, STYLE_OPTIONS, StyleOption } from '../constants/app';
 import { useStyle } from '../context/StyleContext';
-import { generateReply } from '../services/aiClient';
+import { ApiError, generateReply } from '../services/aiClient';
 import { logEvent } from '../services/analytics';
-import {
-  BadResponseError,
-  NetworkOfflineError,
-  RateLimitError,
-  TimeoutError
-} from '../services/errors';
 import { ReplyResult } from '../types/reply';
 import { loadRecentReplies, saveRecentReplies } from '../utils/storage';
 
@@ -30,23 +23,6 @@ const ReplyResultScreen: React.FC<ReplyResultScreenProps> = ({ result, onRegener
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [includeShareText, setIncludeShareText] = useState(true);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const requestIdRef = useRef(0);
-  const shareMessages = useMemo(
-    () => [
-      'Bunu NextMove yazdı. İndir, dene.',
-      'NextMove ile dene, cevabı saniyede al 😄'
-    ],
-    []
-  );
-
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, []);
 
   const replies = useMemo(
     () => [
@@ -77,8 +53,6 @@ const ReplyResultScreen: React.FC<ReplyResultScreenProps> = ({ result, onRegener
       if (loading) {
         return;
       }
-      const requestId = requestIdRef.current + 1;
-      requestIdRef.current = requestId;
       setSelectedStyle(nextStyle);
       setLoading(true);
       setError(null);
@@ -89,13 +63,10 @@ const ReplyResultScreen: React.FC<ReplyResultScreenProps> = ({ result, onRegener
       try {
         await selectStyle(nextStyle);
         const generated = await generateReply({
-          incomingMessage: current.message,
+          message: current.message,
           goal: current.goal,
           style: nextStyle
         });
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
         const updated: ReplyResult = {
           ...current,
           style: nextStyle,
@@ -108,30 +79,13 @@ const ReplyResultScreen: React.FC<ReplyResultScreenProps> = ({ result, onRegener
         onRegenerate?.(updated);
       } catch (err) {
         const fallbackMessage = 'Cevap alınamadı. Lütfen tekrar dene.';
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
-        if (err instanceof RateLimitError) {
-          setError(err.message);
-          return;
-        }
-        if (err instanceof TimeoutError) {
-          setError('İstek zaman aşımına uğradı. Tekrar dene.');
-          return;
-        }
-        if (err instanceof NetworkOfflineError) {
-          setError('Bağlantı yok. İnterneti kontrol et.');
-          return;
-        }
-        if (err instanceof BadResponseError) {
+        if (err instanceof ApiError) {
           setError(err.message || fallbackMessage);
-          return;
+        } else {
+          setError(fallbackMessage);
         }
-        setError(fallbackMessage);
       } finally {
-        if (requestId === requestIdRef.current) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     },
     [current, loading, onRegenerate, persistResult, selectStyle, selectedStyle]
@@ -140,11 +94,6 @@ const ReplyResultScreen: React.FC<ReplyResultScreenProps> = ({ result, onRegener
   const handleCopy = useCallback(
     async (text: string) => {
       await Clipboard.setStringAsync(text);
-      try {
-        await Haptics.selectionAsync();
-      } catch {
-        // ignore haptics failures
-      }
       showToast('Kopyalandı');
       logEvent('copy_click', { style: current.style });
     },
@@ -153,27 +102,13 @@ const ReplyResultScreen: React.FC<ReplyResultScreenProps> = ({ result, onRegener
 
   const handleShare = useCallback(
     async (text: string) => {
-      const shareSuffix = shareMessages[Math.floor(Math.random() * shareMessages.length)];
       const shareText = includeShareText
-        ? `${text}\n\n${shareSuffix}`
+        ? `${text}\n\nBu mesajla cevap geldi. Deneyin: NextMove`
         : text;
       await Share.share({ message: shareText });
       logEvent('share_click', { style: current.style });
     },
-    [current.style, includeShareText, shareMessages]
-  );
-
-  const handleStylePress = useCallback(
-    (nextStyle: StyleOption) => {
-      setSelectedStyle(nextStyle);
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-      debounceRef.current = setTimeout(() => {
-        handleGenerate(nextStyle);
-      }, 800);
-    },
-    [handleGenerate]
+    [current.style, includeShareText]
   );
 
   return (
@@ -181,23 +116,20 @@ const ReplyResultScreen: React.FC<ReplyResultScreenProps> = ({ result, onRegener
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Önerilen cevaplar</Text>
         <Text style={styles.subtitle}>Tarz: {selectedStyle}</Text>
-        {current.result.explanation ? (
-          <Text style={styles.helperText}>{current.result.explanation}</Text>
-        ) : null}
+        <Text style={styles.helperText}>{current.result.explanation}</Text>
         {current.result.followUp ? (
           <View style={styles.followUp}>
             <Text style={styles.followUpLabel}>Sonraki adım</Text>
             <Text style={styles.followUpText}>{current.result.followUp}</Text>
           </View>
         ) : null}
-        <Text style={styles.sectionLabel}>Tarz seç</Text>
         <View style={styles.toneRow}>
           {STYLE_OPTIONS.map((tone) => (
             <ToneButton
               key={tone}
               label={tone}
               selected={selectedStyle === tone}
-              onPress={() => handleStylePress(tone)}
+              onPress={() => handleGenerate(tone)}
             />
           ))}
         </View>
@@ -227,16 +159,11 @@ const ReplyResultScreen: React.FC<ReplyResultScreenProps> = ({ result, onRegener
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardsRow}>
           {replies.map((item) => (
             <View key={item.label} style={styles.card}>
-              <Text style={styles.cardLabel}>{item.isBest ? 'En iyi cevap' : item.label}</Text>
+              <Text style={styles.cardLabel}>{item.isBest ? 'Best Reply' : item.label}</Text>
               <Text style={styles.cardText}>{item.text}</Text>
               <View style={styles.cardActions}>
-                <Pressable
-                  style={item.isBest ? styles.actionPrimary : null}
-                  onPress={() => handleCopy(item.text)}
-                >
-                  <Text style={item.isBest ? styles.actionTextPrimary : styles.actionText}>
-                    Kopyala
-                  </Text>
+                <Pressable onPress={() => handleCopy(item.text)}>
+                  <Text style={styles.actionText}>Kopyala</Text>
                 </Pressable>
                 <Pressable onPress={() => handleShare(item.text)}>
                   <Text style={styles.actionText}>Paylaş</Text>
@@ -277,13 +204,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#BDBDBD',
     lineHeight: 20
-  },
-  sectionLabel: {
-    marginTop: 16,
-    color: '#E6FF4E',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    fontSize: 12
   },
   followUp: {
     marginTop: 12,
@@ -357,16 +277,6 @@ const styles = StyleSheet.create({
   actionText: {
     color: '#E6FF4E',
     fontWeight: '600'
-  },
-  actionPrimary: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 14,
-    backgroundColor: '#E6FF4E'
-  },
-  actionTextPrimary: {
-    color: '#0B0B0B',
-    fontWeight: '700'
   },
   regenerateButton: {
     marginTop: 18,

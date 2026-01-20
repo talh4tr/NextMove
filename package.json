@@ -17,8 +17,6 @@
     "@react-navigation/native-stack": "6.10.1",
     "expo": "50.0.21",
     "expo-clipboard": "5.0.1",
-    "expo-constants": "16.0.2",
-    "expo-haptics": "12.8.1",
     "expo-linear-gradient": "12.7.2",
     "expo-status-bar": "1.11.1",
     "react": "18.2.0",

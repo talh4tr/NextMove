@@ -1,5 +1,11 @@
 import { StyleOption } from '../constants/app';
-import { GenerateReplyResponse } from './api';
+
+export type GenerateReplyResult = {
+  bestReply: string;
+  alternatives: string[];
+  explanation: string;
+  followUp?: string | null;
+};
 
 export type ReplyResult = {
   id: string;
@@ -7,5 +13,5 @@ export type ReplyResult = {
   goal?: string;
   style: StyleOption;
   generatedAt: number;
-  result: GenerateReplyResponse;
+  result: GenerateReplyResult;
 };

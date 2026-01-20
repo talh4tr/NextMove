@@ -1,4 +1,11 @@
-export const STYLE_OPTIONS = ['Cool', 'Romantik', 'Komik', 'Ciddi'] as const;
+export const STYLE_OPTIONS = [
+  'Cool',
+  'Komik',
+  'Romantik',
+  'Agresif',
+  'Sakin',
+  'Zekice'
+] as const;
 
 export const DEFAULT_STYLE = 'Cool';
 

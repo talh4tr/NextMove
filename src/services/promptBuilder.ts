@@ -1,7 +1,9 @@
+import { StyleOption } from '../constants/app';
+
 export type ReplyPromptInput = {
-  incomingMessage: string;
+  message: string;
   goal?: string;
-  style: string;
+  style: StyleOption;
 };
 
 export type ReplyPrompt = {
@@ -9,7 +11,7 @@ export type ReplyPrompt = {
   user: string;
 };
 
-export const buildReplyPrompt = ({ incomingMessage, goal, style }: ReplyPromptInput): ReplyPrompt => {
+export const buildReplyPrompt = ({ message, goal, style }: ReplyPromptInput): ReplyPrompt => {
   const goalLine = goal ? `Kısa hedef: ${goal}` : 'Kısa hedef: belirtilmedi';
 
   return {
@@ -29,7 +31,7 @@ export const buildReplyPrompt = ({ incomingMessage, goal, style }: ReplyPromptIn
     user: [
       `Tarz: ${style}.`,
       goalLine,
-      `Karşı tarafın mesajı: "${incomingMessage}".`,
+      `Karşı tarafın mesajı: "${message}".`,
       'Cevapları kısa tut ve farklı tonlarda alternatifler ver.'
     ].join(' ')
   };
