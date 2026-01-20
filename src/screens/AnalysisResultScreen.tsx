@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import ScreenContainer from '../components/ScreenContainer';
 import ToneButton from '../components/ToneButton';
@@ -18,6 +18,14 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
   const [suggestion, setSuggestion] = useState<MessageSuggestion | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const latestRequestId = useRef(0);
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const fetchSuggestion = useCallback(
     async (tone: ToneOption) => {
@@ -25,9 +33,13 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
         return;
       }
 
+      const requestId = latestRequestId.current + 1;
+      latestRequestId.current = requestId;
+
       setSelectedTone(tone);
       setLoading(true);
       setError(null);
+      setSuggestion(null);
 
       try {
         const result = await suggestMessage({
@@ -35,13 +47,19 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
           tone,
           conversation
         });
-        setSuggestion(result);
+        if (isMounted.current && requestId === latestRequestId.current) {
+          setSuggestion(result);
+        }
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('Mesaj önerisi başarısız:', err);
-        setError('Öneri alınamadı. Lütfen tekrar dene.');
+        if (isMounted.current && requestId === latestRequestId.current) {
+          setError('Öneri alınamadı. Lütfen tekrar dene.');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted.current && requestId === latestRequestId.current) {
+          setLoading(false);
+        }
       }
     },
     [character, conversation]
