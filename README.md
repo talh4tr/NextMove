@@ -42,19 +42,9 @@ MVP için iki endpoint yeterlidir:
       "interestScore": 72,
       "trend": "Yükseliş",
       "detection": "Mesajlar net ama tempo biraz hızlı.",
-      "reasons": [
-        "Karşı taraf soru sormaya devam ediyor.",
-        "Mesaj aralıkları dengeli.",
-        "Duygu tonu sıcak ama kontrollü."
-      ],
-      "flags": {
-        "green": ["Sorulara dönüş var", "Plan fikrine açık"],
-        "red": ["Cevaplar kısa kaldı"]
-      },
       "recommendation": {
         "timing": "Akşam 20:00 civarı",
-        "nextStep": "Kısa ve net bir soru ile ilerle",
-        "alternatives": ["Espriyle küçük bir top aç", "Net bir plan öner"]
+        "nextStep": "Kısa ve net bir soru ile ilerle"
       }
     }
     ```
@@ -74,6 +64,6 @@ MVP için iki endpoint yeterlidir:
 - UI metinleri ve marka dili brief'e göre düzenlendi.
 - Prompt'lar backend'de tutulmalı ve karakter seçimi prompt'a parametre olarak eklenmeli.
 - State management için Context kullanıldı, karakter AsyncStorage ile saklanıyor.
-- Gizlilik notu: Konuşma içeriği yalnızca analiz için backend'e gönderilir, cihazda sadece karakter seçimi tutulur.
 - İleride i18n altyapısı (örn. i18next) eklenerek çoklu dil desteği sağlanabilir.
 - Proje büyüdükçe daha sıkı lint kuralları ve unit testler (örn. Jest + React Native Testing Library) önerilir.
+
