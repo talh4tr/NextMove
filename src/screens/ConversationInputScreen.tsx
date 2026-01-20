@@ -1,7 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenContainer from '../components/ScreenContainer';
 import { useCharacter } from '../context/CharacterContext';
@@ -23,11 +21,12 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onAna
   const showValidation = touched && isEmpty;
 
   const handleAnalyze = async () => {
-    if (!character || isEmpty) {
+    if (isEmpty) {
       setTouched(true);
+      return;
+    }
 
-  const handleAnalyze = async () => {
-    if (!character || !conversation.trim()) {
+    if (!character) {
       return;
     }
 
@@ -54,7 +53,6 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onAna
       <Text style={styles.title}>Konuşmayı yapıştır</Text>
       <TextInput
         style={[styles.input, showValidation ? styles.inputError : null]}
-        style={styles.input}
         placeholder="Mesajları buraya yapıştır…"
         placeholderTextColor="#6D6D6D"
         value={conversation}
@@ -73,15 +71,11 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onAna
           </Pressable>
         </View>
       ) : null}
-        multiline
-      />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
       <View style={styles.footer}>
         {loading ? (
           <ActivityIndicator color="#E6FF4E" />
         ) : (
           <PrimaryButton label="Analiz Et" onPress={handleAnalyze} disabled={isEmpty} />
-          <PrimaryButton label="Analiz Et" onPress={handleAnalyze} disabled={!conversation.trim()} />
         )}
       </View>
     </ScreenContainer>
@@ -122,10 +116,6 @@ const styles = StyleSheet.create({
   retry: {
     color: '#E6FF4E',
     fontWeight: '600'
-  },
-  error: {
-    marginTop: 12,
-    color: '#FF8E8E'
   },
   footer: {
     marginTop: 'auto'
