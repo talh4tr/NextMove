@@ -56,7 +56,12 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onAna
         placeholder="Mesajları buraya yapıştır…"
         placeholderTextColor="#6D6D6D"
         value={conversation}
-        onChangeText={setConversation}
+        onChangeText={(value) => {
+          setConversation(value);
+          if (error) {
+            setError(null);
+          }
+        }}
         onBlur={() => setTouched(true)}
         multiline
       />

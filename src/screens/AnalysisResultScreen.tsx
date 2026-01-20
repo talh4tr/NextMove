@@ -37,6 +37,7 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
       latestRequestId.current = requestId;
 
       setSelectedTone(tone);
+      setSuggestion(null);
       setLoading(true);
       setError(null);
       setSuggestion(null);
@@ -52,10 +53,9 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
         }
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error('Mesaj önerisi başarısız:', err);
-        if (isMounted.current && requestId === latestRequestId.current) {
-          setError('Öneri alınamadı. Lütfen tekrar dene.');
-        }
+         önerisi başarısız:', err);
+        setSuggestion(null);
+        setError('Öneri alınamadı. Lütfen tekrar dene.');
       } finally {
         if (isMounted.current && requestId === latestRequestId.current) {
           setLoading(false);
