@@ -10,7 +10,7 @@
     "allowJs": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "types": ["react", "react-native"]
+    "types": ["react", "react-native", "jest"]
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
