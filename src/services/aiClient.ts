@@ -4,26 +4,22 @@ import { AnalysisResult, MessageSuggestion } from '../types/analysis';
 
 type AnalyzePayload = {
   character: CharacterOption;
+import { AnalysisResult, MessageSuggestion } from '../types/analysis';
+
+type AnalyzePayload = {
+  character: string;
   conversation: string;
 };
 
 type SuggestPayload = {
   character: CharacterOption;
   tone: ToneOption;
+  character: string;
+  tone: MessageSuggestion['tone'];
   conversation: string;
 };
 
 const apiBaseUrl = Constants.expoConfig?.extra?.apiBaseUrl || process.env.EXPO_PUBLIC_API_BASE_URL;
-
-export class ApiError extends Error {
-  status: number;
-
-  constructor(message: string, status: number) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-  }
-}
 
 const request = async <T>(path: string, payload: Record<string, unknown>): Promise<T> => {
   if (!apiBaseUrl) {
@@ -39,7 +35,7 @@ const request = async <T>(path: string, payload: Record<string, unknown>): Promi
   });
 
   if (!response.ok) {
-    throw new ApiError('Sunucu yanıtı alınamadı.', response.status);
+    throw new Error('Sunucu yanıtı alınamadı.');
   }
 
   return response.json() as Promise<T>;

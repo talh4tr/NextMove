@@ -1,9 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, TextInput, View } from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenContainer from '../components/ScreenContainer';
 import { useCharacter } from '../context/CharacterContext';
-import { ApiError, analyzeConversation } from '../services/aiClient';
+import { analyzeConversation } from '../services/aiClient';
 import { AnalysisResult } from '../types/analysis';
 
 type ConversationInputScreenProps = {
@@ -16,41 +18,16 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onAna
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
-  const [progressIndex, setProgressIndex] = useState(0);
 
   const isEmpty = useMemo(() => !conversation.trim(), [conversation]);
   const showValidation = touched && isEmpty;
-  const progressSteps = ['Konuşma okunuyor…', 'İlgi analizi yapılıyor…', 'Öneriler hazırlanıyor…'];
-
-  useEffect(() => {
-    if (!loading) {
-      setProgressIndex(0);
-      return undefined;
-    }
-
-    const timer = setInterval(() => {
-      setProgressIndex((prev) => (prev + 1) % progressSteps.length);
-    }, 1200);
-
-    return () => clearInterval(timer);
-  }, [loading, progressSteps.length]);
-
-  const resolveErrorMessage = (err: unknown) => {
-    if (err instanceof TypeError) {
-      return 'İnternet bağlantısı yok gibi görünüyor. Bağlantını kontrol et.';
-    }
-    if (err instanceof ApiError) {
-      if (err.status >= 500) {
-        return 'Sunucu şu an yoğun. Biraz sonra tekrar dene.';
-      }
-      return 'İstek işlenemedi. Konuşmayı kontrol edip tekrar dene.';
-    }
-    return 'Analiz sırasında bir sorun oluştu. Lütfen tekrar dene.';
-  };
 
   const handleAnalyze = async () => {
     if (!character || isEmpty) {
       setTouched(true);
+
+  const handleAnalyze = async () => {
+    if (!character || !conversation.trim()) {
       return;
     }
 
@@ -66,7 +43,7 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onAna
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('Analiz isteği başarısız:', err);
-      setError(resolveErrorMessage(err));
+      setError('Analiz sırasında bir sorun oluştu. Lütfen tekrar dene.');
     } finally {
       setLoading(false);
     }
@@ -75,12 +52,9 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onAna
   return (
     <ScreenContainer>
       <Text style={styles.title}>Konuşmayı yapıştır</Text>
-      <Text style={styles.privacy}>
-        Bu içerik cihazında kalır. Analiz için yalnızca bu konuşma backend’e gönderilir. Karakter
-        seçimin lokal saklanır.
-      </Text>
       <TextInput
         style={[styles.input, showValidation ? styles.inputError : null]}
+        style={styles.input}
         placeholder="Mesajları buraya yapıştır…"
         placeholderTextColor="#6D6D6D"
         value={conversation}
@@ -99,14 +73,15 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onAna
           </Pressable>
         </View>
       ) : null}
+        multiline
+      />
+      {error ? <Text style={styles.error}>{error}</Text> : null}
       <View style={styles.footer}>
         {loading ? (
-          <View style={styles.loadingRow}>
-            <ActivityIndicator color="#E6FF4E" />
-            <Text style={styles.loadingText}>{progressSteps[progressIndex]}</Text>
-          </View>
+          <ActivityIndicator color="#E6FF4E" />
         ) : (
           <PrimaryButton label="Analiz Et" onPress={handleAnalyze} disabled={isEmpty} />
+          <PrimaryButton label="Analiz Et" onPress={handleAnalyze} disabled={!conversation.trim()} />
         )}
       </View>
     </ScreenContainer>
@@ -118,12 +93,6 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: '700',
     color: '#FFFFFF'
-  },
-  privacy: {
-    marginTop: 10,
-    fontSize: 12,
-    color: '#8B8B8B',
-    lineHeight: 18
   },
   input: {
     marginTop: 16,
@@ -154,17 +123,12 @@ const styles = StyleSheet.create({
     color: '#E6FF4E',
     fontWeight: '600'
   },
+  error: {
+    marginTop: 12,
+    color: '#FF8E8E'
+  },
   footer: {
     marginTop: 'auto'
-  },
-  loadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10
-  },
-  loadingText: {
-    color: '#BDBDBD',
-    fontSize: 14
   }
 });
 
