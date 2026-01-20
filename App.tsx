@@ -32,6 +32,7 @@ const FlowNavigator = () => {
   }, [loadCharacter]);
 
   if (!ready) {
+    return <SplashScreen isLoading />;
     return <SplashScreen onContinue={() => undefined} />;
   }
 
@@ -46,6 +47,10 @@ const FlowNavigator = () => {
         <Stack.Screen name="Splash">
           {(props) => (
             <SplashScreen
+              autoContinue
+              onContinue={() => {
+                props.navigation.replace(character ? 'Conversation' : 'Onboarding');
+              }}
               onContinue={() =>
                 props.navigation.replace(character ? 'Conversation' : 'Onboarding')
               }

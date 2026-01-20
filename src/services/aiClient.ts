@@ -1,4 +1,9 @@
 import Constants from 'expo-constants';
+import { CharacterOption, ToneOption } from '../constants/app';
+import { AnalysisResult, MessageSuggestion } from '../types/analysis';
+
+type AnalyzePayload = {
+  character: CharacterOption;
 import { AnalysisResult, MessageSuggestion } from '../types/analysis';
 
 type AnalyzePayload = {
@@ -7,6 +12,8 @@ type AnalyzePayload = {
 };
 
 type SuggestPayload = {
+  character: CharacterOption;
+  tone: ToneOption;
   character: string;
   tone: MessageSuggestion['tone'];
   conversation: string;

@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenContainer from '../components/ScreenContainer';
 import ToneButton from '../components/ToneButton';
+import { CharacterOption } from '../constants/app';
 import { useCharacter } from '../context/CharacterContext';
 
 type OnboardingScreenProps = {
@@ -11,6 +12,9 @@ type OnboardingScreenProps = {
 
 const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onDone }) => {
   const { options, selectCharacter } = useCharacter();
+  const [selected, setSelected] = useState<CharacterOption | null>(null);
+
+  const handleSelect = (value: CharacterOption) => {
   const [selected, setSelected] = useState<string | null>(null);
 
   const handleSelect = (value: string) => {

@@ -1,3 +1,8 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import ScreenContainer from '../components/ScreenContainer';
+import ToneButton from '../components/ToneButton';
+import { TONE_OPTIONS, ToneOption } from '../constants/app';
 import React, { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import ScreenContainer from '../components/ScreenContainer';
@@ -11,6 +16,9 @@ type AnalysisResultScreenProps = {
   conversation: string;
 };
 
+const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, conversation }) => {
+  const { character } = useCharacter();
+  const [selectedTone, setSelectedTone] = useState<ToneOption>('Dengeli');
 const toneOptions: MessageSuggestion['tone'][] = ['Dengeli', 'Daha Mesafeli', 'Daha Net'];
 
 const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, conversation }) => {
@@ -20,6 +28,37 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchSuggestion = useCallback(
+    async (tone: ToneOption) => {
+      if (!character) {
+        return;
+      }
+
+      setSelectedTone(tone);
+      setLoading(true);
+      setError(null);
+
+      try {
+        const result = await suggestMessage({
+          character,
+          tone,
+          conversation
+        });
+        setSuggestion(result);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Mesaj önerisi başarısız:', err);
+        setError('Öneri alınamadı. Lütfen tekrar dene.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [character, conversation]
+  );
+
+  useEffect(() => {
+    fetchSuggestion('Dengeli');
+  }, [fetchSuggestion]);
   const handleToneChange = async (tone: MessageSuggestion['tone']) => {
     if (!character) {
       return;
@@ -63,16 +102,26 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Bir sonraki hamle</Text>
         <View style={styles.toneRow}>
+          {TONE_OPTIONS.map((tone) => (
           {toneOptions.map((tone) => (
             <ToneButton
               key={tone}
               label={tone}
               selected={selectedTone === tone}
+              onPress={() => fetchSuggestion(tone)}
               onPress={() => handleToneChange(tone)}
             />
           ))}
         </View>
         {loading ? <ActivityIndicator color="#E6FF4E" /> : null}
+        {error ? (
+          <View style={styles.errorRow}>
+            <Text style={styles.error}>{error}</Text>
+            <Pressable onPress={() => fetchSuggestion(selectedTone)} disabled={loading}>
+              <Text style={styles.retry}>Tekrar dene</Text>
+            </Pressable>
+          </View>
+        ) : null}
         {error ? <Text style={styles.error}>{error}</Text> : null}
         {suggestion ? <Text style={styles.suggestion}>{suggestion.message}</Text> : null}
       </View>
@@ -116,6 +165,10 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8
   },
+  errorRow: {
+    marginTop: 10,
+    gap: 6
+  },
   suggestion: {
     marginTop: 12,
     color: '#FFFFFF',
@@ -123,6 +176,11 @@ const styles = StyleSheet.create({
     lineHeight: 22
   },
   error: {
+    color: '#FF8E8E'
+  },
+  retry: {
+    color: '#E6FF4E',
+    fontWeight: '600'
     marginTop: 10,
     color: '#FF8E8E'
   }

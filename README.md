@@ -64,4 +64,6 @@ MVP için iki endpoint yeterlidir:
 - UI metinleri ve marka dili brief'e göre düzenlendi.
 - Prompt'lar backend'de tutulmalı ve karakter seçimi prompt'a parametre olarak eklenmeli.
 - State management için Context kullanıldı, karakter AsyncStorage ile saklanıyor.
+- İleride i18n altyapısı (örn. i18next) eklenerek çoklu dil desteği sağlanabilir.
+- Proje büyüdükçe daha sıkı lint kuralları ve unit testler (örn. Jest + React Native Testing Library) önerilir.
 

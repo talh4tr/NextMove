@@ -1,4 +1,12 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { CharacterOption, CHARACTER_OPTIONS } from '../constants/app';
+import { getCharacter, saveCharacter } from '../utils/storage';
+
+type CharacterContextValue = {
+  character: CharacterOption | null;
+  options: CharacterOption[];
+  loadCharacter: () => Promise<void>;
+  selectCharacter: (value: CharacterOption) => Promise<void>;
 import { getCharacter, saveCharacter } from '../utils/storage';
 
 const CHARACTER_OPTIONS = [
@@ -19,11 +27,19 @@ type CharacterContextValue = {
 const CharacterContext = createContext<CharacterContextValue | undefined>(undefined);
 
 export const CharacterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [character, setCharacter] = useState<CharacterOption | null>(null);
   const [character, setCharacter] = useState<string | null>(null);
 
   const loadCharacter = useCallback(async () => {
     const stored = await getCharacter();
     if (stored) {
+      if (CHARACTER_OPTIONS.includes(stored as CharacterOption)) {
+        setCharacter(stored as CharacterOption);
+      }
+    }
+  }, []);
+
+  const selectCharacter = useCallback(async (value: CharacterOption) => {
       setCharacter(stored);
     }
   }, []);

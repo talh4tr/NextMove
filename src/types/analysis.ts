@@ -1,3 +1,5 @@
+import { ToneOption } from '../constants/app';
+
 export type AnalysisResult = {
   interestScore: number;
   trend: 'Yükseliş' | 'Düşüş' | 'Stabil';
@@ -9,6 +11,7 @@ export type AnalysisResult = {
 };
 
 export type MessageSuggestion = {
+  tone: ToneOption;
   tone: 'Dengeli' | 'Daha Mesafeli' | 'Daha Net';
   message: string;
 };
