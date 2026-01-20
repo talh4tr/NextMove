@@ -26,6 +26,7 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
       }
 
       setSelectedTone(tone);
+      setSuggestion(null);
       setLoading(true);
       setError(null);
 
@@ -39,6 +40,7 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('Mesaj önerisi başarısız:', err);
+        setSuggestion(null);
         setError('Öneri alınamadı. Lütfen tekrar dene.');
       } finally {
         setLoading(false);
