@@ -53,7 +53,7 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
         }
       } catch (err) {
         // eslint-disable-next-line no-console
-         önerisi başarısız:', err);
+        console.error('Öneri başarısız:', err);
         setSuggestion(null);
         setError('Öneri alınamadı. Lütfen tekrar dene.');
       } finally {
