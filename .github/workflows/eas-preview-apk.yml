@@ -1,4 +1,4 @@
-name: EAS Preview APK
+name: EAS Preview APK Build
 
 on:
   workflow_dispatch:
