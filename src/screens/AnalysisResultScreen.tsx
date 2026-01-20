@@ -3,10 +3,6 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import ScreenContainer from '../components/ScreenContainer';
 import ToneButton from '../components/ToneButton';
 import { TONE_OPTIONS, ToneOption } from '../constants/app';
-import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import ScreenContainer from '../components/ScreenContainer';
-import ToneButton from '../components/ToneButton';
 import { useCharacter } from '../context/CharacterContext';
 import { suggestMessage } from '../services/aiClient';
 import { AnalysisResult, MessageSuggestion } from '../types/analysis';
@@ -19,11 +15,6 @@ type AnalysisResultScreenProps = {
 const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, conversation }) => {
   const { character } = useCharacter();
   const [selectedTone, setSelectedTone] = useState<ToneOption>('Dengeli');
-const toneOptions: MessageSuggestion['tone'][] = ['Dengeli', 'Daha Mesafeli', 'Daha Net'];
-
-const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, conversation }) => {
-  const { character } = useCharacter();
-  const [selectedTone, setSelectedTone] = useState<MessageSuggestion['tone']>('Dengeli');
   const [suggestion, setSuggestion] = useState<MessageSuggestion | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,28 +50,6 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
   useEffect(() => {
     fetchSuggestion('Dengeli');
   }, [fetchSuggestion]);
-  const handleToneChange = async (tone: MessageSuggestion['tone']) => {
-    if (!character) {
-      return;
-    }
-
-    setSelectedTone(tone);
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await suggestMessage({
-        character,
-        tone,
-        conversation
-      });
-      setSuggestion(result);
-    } catch (err) {
-      setError('Öneri alınamadı. Lütfen tekrar dene.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <ScreenContainer>
@@ -103,13 +72,11 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
         <Text style={styles.sectionTitle}>Bir sonraki hamle</Text>
         <View style={styles.toneRow}>
           {TONE_OPTIONS.map((tone) => (
-          {toneOptions.map((tone) => (
             <ToneButton
               key={tone}
               label={tone}
               selected={selectedTone === tone}
               onPress={() => fetchSuggestion(tone)}
-              onPress={() => handleToneChange(tone)}
             />
           ))}
         </View>
@@ -122,7 +89,6 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
             </Pressable>
           </View>
         ) : null}
-        {error ? <Text style={styles.error}>{error}</Text> : null}
         {suggestion ? <Text style={styles.suggestion}>{suggestion.message}</Text> : null}
       </View>
     </ScreenContainer>
@@ -181,8 +147,6 @@ const styles = StyleSheet.create({
   retry: {
     color: '#E6FF4E',
     fontWeight: '600'
-    marginTop: 10,
-    color: '#FF8E8E'
   }
 });
 
