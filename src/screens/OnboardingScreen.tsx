@@ -15,6 +15,9 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onDone }) => {
   const [selected, setSelected] = useState<CharacterOption | null>(null);
 
   const handleSelect = (value: CharacterOption) => {
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const handleSelect = (value: string) => {
     setSelected(value);
   };
 

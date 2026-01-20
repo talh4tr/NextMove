@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import PrimaryButton from '../components/PrimaryButton';
 import ScreenContainer from '../components/ScreenContainer';
 
@@ -20,6 +22,10 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onContinue, isLoading, auto
     return undefined;
   }, [autoContinue, onContinue]);
 
+  onContinue: () => void;
+};
+
+const SplashScreen: React.FC<SplashScreenProps> = ({ onContinue }) => {
   return (
     <ScreenContainer>
       <View style={styles.spacer} />
@@ -28,6 +34,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onContinue, isLoading, auto
       <View style={styles.spacer} />
       {isLoading ? <ActivityIndicator color="#E6FF4E" /> : null}
       {!autoContinue && onContinue ? <PrimaryButton label="Başla" onPress={onContinue} /> : null}
+      <PrimaryButton label="Başla" onPress={onContinue} />
     </ScreenContainer>
   );
 };

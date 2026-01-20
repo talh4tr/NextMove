@@ -66,3 +66,4 @@ MVP için iki endpoint yeterlidir:
 - State management için Context kullanıldı, karakter AsyncStorage ile saklanıyor.
 - İleride i18n altyapısı (örn. i18next) eklenerek çoklu dil desteği sağlanabilir.
 - Proje büyüdükçe daha sıkı lint kuralları ve unit testler (örn. Jest + React Native Testing Library) önerilir.
+
