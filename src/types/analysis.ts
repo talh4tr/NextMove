@@ -12,6 +12,5 @@ export type AnalysisResult = {
 
 export type MessageSuggestion = {
   tone: ToneOption;
-  tone: 'Dengeli' | 'Daha Mesafeli' | 'Daha Net';
   message: string;
 };
