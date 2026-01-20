@@ -26,6 +26,7 @@ const AnalysisResultScreen: React.FC<AnalysisResultScreenProps> = ({ analysis, c
       }
 
       setSelectedTone(tone);
+      setSuggestion(null);
       setLoading(true);
       setError(null);
 
