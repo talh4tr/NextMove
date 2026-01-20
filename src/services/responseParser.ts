@@ -17,18 +17,19 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const normalizeString = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
 
-const toSentences = (text: string) => {
-  const matches = text.match(/[^.!?]+[.!?]?/g) || [];
-  return matches.map((sentence) => sentence.trim()).filter(Boolean);
-};
+const MAX_REPLY_LENGTH = 260;
+const MIN_TRIM_POSITION = 160;
 
-const limitToTwoSentences = (text: string) => {
-  const sentences = toSentences(text);
-  const unique = sentences.filter(
-    (sentence, index) =>
-      sentences.findIndex((item) => item.toLowerCase() === sentence.toLowerCase()) === index
-  );
-  return unique.slice(0, 2).join(' ');
+const limitLength = (text: string) => {
+  if (text.length <= MAX_REPLY_LENGTH) {
+    return text;
+  }
+  const trimmed = text.slice(0, MAX_REPLY_LENGTH);
+  const lastSpace = trimmed.lastIndexOf(' ');
+  if (lastSpace > MIN_TRIM_POSITION) {
+    return `${trimmed.slice(0, lastSpace).trim()}…`;
+  }
+  return `${trimmed.trim()}…`;
 };
 
 const normalizeReply = (text: unknown) => {
@@ -36,7 +37,7 @@ const normalizeReply = (text: unknown) => {
   if (!trimmed) {
     return '';
   }
-  return limitToTwoSentences(trimmed);
+  return limitLength(trimmed);
 };
 
 export const parseGenerateReplyResponse = (payload: unknown): ParseResult => {

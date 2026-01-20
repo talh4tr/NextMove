@@ -31,8 +31,12 @@ const ReplyResultScreen: React.FC<ReplyResultScreenProps> = ({ result, onRegener
   const [toast, setToast] = useState<string | null>(null);
   const [includeShareText, setIncludeShareText] = useState(true);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestIdRef = useRef(0);
   const shareMessages = useMemo(
-    () => ['Bu mesajla cevap geldi. Deneyin: NextMove', 'Kısa cevap, net sonuç. Deneyin: NextMove'],
+    () => [
+      'Bunu NextMove yazdı. İndir, dene.',
+      'NextMove ile dene, cevabı saniyede al 😄'
+    ],
     []
   );
 
@@ -73,6 +77,8 @@ const ReplyResultScreen: React.FC<ReplyResultScreenProps> = ({ result, onRegener
       if (loading) {
         return;
       }
+      const requestId = requestIdRef.current + 1;
+      requestIdRef.current = requestId;
       setSelectedStyle(nextStyle);
       setLoading(true);
       setError(null);
@@ -87,6 +93,9 @@ const ReplyResultScreen: React.FC<ReplyResultScreenProps> = ({ result, onRegener
           goal: current.goal,
           style: nextStyle
         });
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
         const updated: ReplyResult = {
           ...current,
           style: nextStyle,
@@ -99,6 +108,9 @@ const ReplyResultScreen: React.FC<ReplyResultScreenProps> = ({ result, onRegener
         onRegenerate?.(updated);
       } catch (err) {
         const fallbackMessage = 'Cevap alınamadı. Lütfen tekrar dene.';
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
         if (err instanceof RateLimitError) {
           setError(err.message);
           return;
@@ -117,7 +129,9 @@ const ReplyResultScreen: React.FC<ReplyResultScreenProps> = ({ result, onRegener
         }
         setError(fallbackMessage);
       } finally {
-        setLoading(false);
+        if (requestId === requestIdRef.current) {
+          setLoading(false);
+        }
       }
     },
     [current, loading, onRegenerate, persistResult, selectStyle, selectedStyle]

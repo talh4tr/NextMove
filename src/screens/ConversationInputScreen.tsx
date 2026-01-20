@@ -37,7 +37,8 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onRep
   const [recentReplies, setRecentReplies] = useState<ReplyResult[]>([]);
   const [retryUntil, setRetryUntil] = useState<number | null>(null);
   const [now, setNow] = useState(Date.now());
-  const quickExamples = ['kanka nasılsın', 'bugün çok iyisin', 'dün seen attın ya'];
+  const quickExamples = ['kanka nasilsin', 'napıyosun', 'bugun cok iyisin', 'dun seen attin ya'];
+  const goalExamples = ['Buluşmaya çekmek'];
 
   useEffect(() => {
     loadRecentReplies()
@@ -162,6 +163,17 @@ const ConversationInputScreen: React.FC<ConversationInputScreenProps> = ({ onRep
           </Text>
         ) : null}
         <Text style={styles.label}>Ben ne istiyorum? (opsiyonel)</Text>
+        <View style={styles.goalChipRow}>
+          {goalExamples.map((example) => (
+            <Pressable
+              key={example}
+              style={styles.goalChip}
+              onPress={() => setGoal(example)}
+            >
+              <Text style={styles.goalChipText}>{example}</Text>
+            </Pressable>
+          ))}
+        </View>
         <TextInput
           style={styles.goalInput}
           placeholder="Amaç: buluşma, numara, flört"
@@ -244,6 +256,25 @@ const styles = StyleSheet.create({
   },
   chipText: {
     color: '#E0E0E0',
+    fontSize: 12,
+    fontWeight: '600'
+  },
+  goalChipRow: {
+    marginTop: 10,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8
+  },
+  goalChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#2D2D2D',
+    backgroundColor: '#111111'
+  },
+  goalChipText: {
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600'
   },
