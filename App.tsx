@@ -2,34 +2,38 @@ import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { CharacterProvider, useCharacter } from './src/context/CharacterContext';
+import { StyleProvider, useStyle } from './src/context/StyleContext';
 import SplashScreen from './src/screens/SplashScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import ConversationInputScreen from './src/screens/ConversationInputScreen';
-import AnalysisResultScreen from './src/screens/AnalysisResultScreen';
-import { AnalysisResult } from './src/types/analysis';
+import ReplyResultScreen from './src/screens/ReplyResultScreen';
+import { ReplyResult } from './src/types/reply';
+import { getOnboardingSeen, setOnboardingSeen } from './src/utils/storage';
 
 type RootStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
   Conversation: undefined;
-  Analysis: { analysis: AnalysisResult; conversation: string };
+  Result: { result: ReplyResult };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const FlowNavigator = () => {
-  const { character, loadCharacter } = useCharacter();
+  const { loadStyle } = useStyle();
   const [ready, setReady] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     const init = async () => {
-      await loadCharacter();
+      await loadStyle();
+      const seen = await getOnboardingSeen();
+      setShowOnboarding(!seen);
       setReady(true);
     };
 
     init();
-  }, [loadCharacter]);
+  }, [loadStyle]);
 
   if (!ready) {
     return <SplashScreen isLoading />;
@@ -48,28 +52,36 @@ const FlowNavigator = () => {
             <SplashScreen
               autoContinue
               onContinue={() => {
-                props.navigation.replace(character ? 'Conversation' : 'Onboarding');
+                props.navigation.replace(showOnboarding ? 'Onboarding' : 'Conversation');
               }}
             />
           )}
         </Stack.Screen>
         <Stack.Screen name="Onboarding">
-          {(props) => <OnboardingScreen onDone={() => props.navigation.replace('Conversation')} />}
+          {(props) => (
+            <OnboardingScreen
+              onDone={async () => {
+                await setOnboardingSeen();
+                setShowOnboarding(false);
+                props.navigation.replace('Conversation');
+              }}
+            />
+          )}
         </Stack.Screen>
         <Stack.Screen name="Conversation">
           {(props) => (
             <ConversationInputScreen
-              onAnalysisReady={(analysis, conversation) =>
-                props.navigation.navigate('Analysis', { analysis, conversation })
-              }
+              onReplyReady={(result) => props.navigation.navigate('Result', { result })}
             />
           )}
         </Stack.Screen>
-        <Stack.Screen name="Analysis">
+        <Stack.Screen name="Result">
           {(props) => (
-            <AnalysisResultScreen
-              analysis={props.route.params.analysis}
-              conversation={props.route.params.conversation}
+            <ReplyResultScreen
+              result={props.route.params.result}
+              onRegenerate={(nextResult) =>
+                props.navigation.setParams({ result: nextResult })
+              }
             />
           )}
         </Stack.Screen>
@@ -81,8 +93,8 @@ const FlowNavigator = () => {
 
 export default function App() {
   return (
-    <CharacterProvider>
+    <StyleProvider>
       <FlowNavigator />
-    </CharacterProvider>
+    </StyleProvider>
   );
 }
