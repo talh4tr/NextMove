@@ -30,6 +30,12 @@ AI çağrıları backend üzerinden yönetilir ve API key frontend'e yazılmaz.
 EXPO_PUBLIC_API_BASE_URL=https://your-api.example.com
 ```
 
+## EAS Preview APK (GitHub Actions)
+
+1. GitHub repo ayarlarında `Settings > Secrets and variables > Actions` bölümüne `EXPO_TOKEN` secret'ını ekle.
+2. GitHub Actions sekmesinde **EAS Preview APK** workflow'unu manuel olarak çalıştır.
+3. Workflow loglarında yazdırılan build linkini aç ve APK dosyasını indir.
+
 ## Backend API Beklentisi
 
 MVP için iki endpoint yeterlidir:
@@ -66,4 +72,3 @@ MVP için iki endpoint yeterlidir:
 - State management için Context kullanıldı, karakter AsyncStorage ile saklanıyor.
 - İleride i18n altyapısı (örn. i18next) eklenerek çoklu dil desteği sağlanabilir.
 - Proje büyüdükçe daha sıkı lint kuralları ve unit testler (örn. Jest + React Native Testing Library) önerilir.
-

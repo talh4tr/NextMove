@@ -1,0 +1,22 @@
+name: EAS Preview APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-android-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Android preview APK
+        run: |
+          eas build -p android --profile preview --non-interactive --json > build.json
+          node -e "const build=require('./build.json')[0]; console.log('Build URL:', build.buildUrl || build.artifactUrl || build.url);"
